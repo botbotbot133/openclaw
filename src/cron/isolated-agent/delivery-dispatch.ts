@@ -25,8 +25,8 @@ import {
 } from "./subagent-followup.js";
 
 function normalizeDeliveryTarget(channel: string, to: string): string {
-  const channelLower = channel.trim().toLowerCase();
-  const toTrimmed = to.trim();
+  const channelLower = channel?.trim().toLowerCase() ?? "";
+  const toTrimmed = to?.trim() ?? "";
   if (channelLower === "feishu" || channelLower === "lark") {
     const lowered = toTrimmed.toLowerCase();
     if (lowered.startsWith("user:")) {
@@ -46,7 +46,7 @@ export function matchesMessagingToolDeliveryTarget(
   if (!delivery.channel || !delivery.to || !target.to) {
     return false;
   }
-  const channel = delivery.channel.trim().toLowerCase();
+  const channel = delivery?.channel?.trim().toLowerCase() ?? "";
   const provider = target.provider?.trim().toLowerCase();
   if (provider && provider !== "message" && provider !== channel) {
     return false;

@@ -86,13 +86,13 @@ function copyTopLevelAgentTurnFields(
   if (
     typeof payload.channel !== "string" &&
     typeof raw.channel === "string" &&
-    raw.channel.trim()
+    (raw?.channel?.trim() ?? "")
   ) {
-    payload.channel = raw.channel.trim();
+    payload.channel = raw?.channel?.trim() ?? "";
     mutated = true;
   }
-  if (typeof payload.to !== "string" && typeof raw.to === "string" && raw.to.trim()) {
-    payload.to = raw.to.trim();
+  if (typeof payload.to !== "string" && typeof raw.to === "string" && (raw?.to?.trim() ?? "")) {
+    payload.to = raw?.to?.trim() ?? "";
     mutated = true;
   }
   if (
@@ -105,9 +105,9 @@ function copyTopLevelAgentTurnFields(
   if (
     typeof payload.provider !== "string" &&
     typeof raw.provider === "string" &&
-    raw.provider.trim()
+    (raw?.provider?.trim() ?? "")
   ) {
-    payload.provider = raw.provider.trim();
+    payload.provider = raw?.provider?.trim() ?? "";
     mutated = true;
   }
 

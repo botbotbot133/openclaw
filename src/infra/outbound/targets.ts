@@ -452,7 +452,7 @@ function inferChatTypeFromTarget(params: {
   channel: DeliverableMessageChannel;
   to: string;
 }): ChatType | undefined {
-  const to = params.to.trim();
+  const to = params.to?.trim() ?? "";
   if (!to) {
     return undefined;
   }

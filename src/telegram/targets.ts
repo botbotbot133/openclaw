@@ -8,7 +8,7 @@ const TELEGRAM_NUMERIC_CHAT_ID_REGEX = /^-?\d+$/;
 const TELEGRAM_USERNAME_REGEX = /^[A-Za-z0-9_]{5,}$/i;
 
 export function stripTelegramInternalPrefixes(to: string): string {
-  let trimmed = to.trim();
+  let trimmed = to?.trim() ?? "";
   let strippedTelegramPrefix = false;
   while (true) {
     const next = (() => {

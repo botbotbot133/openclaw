@@ -35,7 +35,7 @@ function normalizeTo(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
   }
-  const trimmed = value.trim();
+  const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : undefined;
 }
 
@@ -43,7 +43,7 @@ function normalizeAccountId(value: unknown): string | undefined {
   if (typeof value !== "string") {
     return undefined;
   }
-  const trimmed = value.trim();
+  const trimmed = value?.trim() ?? "";
   return trimmed ? trimmed : undefined;
 }
 

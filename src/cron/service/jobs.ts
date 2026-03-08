@@ -166,7 +166,7 @@ function validateTelegramDeliveryTarget(to: string | undefined): string | undefi
   if (!to) {
     return undefined;
   }
-  const trimmed = to.trim();
+  const trimmed = to?.trim() ?? "";
   if (TELEGRAM_TME_URL_REGEX.test(trimmed)) {
     return undefined;
   }
@@ -180,7 +180,7 @@ function validateAgentDeliveryTarget(to: string | undefined): string | undefined
   if (!to) {
     return "Agent channel delivery requires delivery.to to specify the target agent ID or workspace path";
   }
-  const trimmed = to.trim();
+  const trimmed = to?.trim() ?? "";
   if (trimmed.length === 0) {
     return "Agent channel delivery requires delivery.to to specify the target agent ID or workspace path";
   }
