@@ -171,7 +171,7 @@ function normalizeTo(input: unknown): string | undefined {
   if (typeof input !== "string") {
     return undefined;
   }
-  const to = input.trim();
+  const to = input?.trim() ?? "";
   return to ? to : undefined;
 }
 
