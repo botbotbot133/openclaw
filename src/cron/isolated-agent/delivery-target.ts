@@ -47,6 +47,17 @@ export async function resolveDeliveryTarget(
     sessionKey?: string;
   },
 ): Promise<DeliveryTargetResolution> {
+  // Special handling for agent channel - bypass normal channel resolution
+  if (jobPayload.channel === "agent" && jobPayload.to) {
+    return {
+      ok: true,
+      channel: "agent" as unknown as Exclude<OutboundChannel, "none">,
+      to: jobPayload.to,
+      accountId: jobPayload.accountId,
+      mode: "explicit",
+    };
+  }
+
   const requestedChannel = typeof jobPayload.channel === "string" ? jobPayload.channel : "last";
   const explicitTo = typeof jobPayload.to === "string" ? jobPayload.to : undefined;
   const allowMismatchedLastTo = requestedChannel === "last";
