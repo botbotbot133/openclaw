@@ -166,12 +166,43 @@ export async function dispatchCronDelivery(
   let summary = params.summary;
   let outputText = params.outputText;
   let synthesizedText = params.synthesizedText;
-  let deliveryPayloads = params.deliveryPayloads;
-
-  // `true` means we confirmed at least one outbound send reached the target.
-  // Keep this strict so timer fallback can safely decide whether to wake main.
   let delivered = params.skipMessagingToolDelivery;
   let deliveryAttempted = params.skipMessagingToolDelivery;
+
+  // Handle agent channel routing - inject directly into target agent's session
+  if (
+    params.resolvedDelivery.ok &&
+    params.resolvedDelivery.channel === "agent" &&
+    params.resolvedDelivery.to
+  ) {
+    if (synthesizedText) {
+      deliveryAttempted = true;
+      // Inject the cron output as a system event into the target agent's session
+      params.deps.enqueueSystemEvent(synthesizedText, {
+        agentId: params.resolvedDelivery.to,
+        sessionKey: `cron:${params.job.id}:agent-delivery`,
+        contextKey: `cron:${params.job.id}`,
+      });
+      // Wake the target agent if needed
+      if (params.job.wakeMode === "now") {
+        params.deps.requestHeartbeatNow({
+          reason: `cron:${params.job.id}:agent-delivery`,
+          agentId: params.resolvedDelivery.to,
+          sessionKey: `cron:${params.job.id}:agent-delivery`,
+        });
+      }
+      delivered = true;
+    }
+    return {
+      delivered,
+      deliveryAttempted,
+      summary,
+      outputText,
+      synthesizedText,
+      deliveryPayloads,
+    };
+  }
+
   // Tracks whether `runSubagentAnnounceFlow` was actually called.  Early
   // returns from `deliverViaAnnounce` (active subagents, interim suppression,
   // SILENT_REPLY_TOKEN) are intentional suppressions — not delivery failures —
