@@ -1225,7 +1225,7 @@ export function wake(
   state: CronServiceState,
   opts: { mode: "now" | "next-heartbeat"; text: string },
 ) {
-  const text = opts.text.trim();
+  const text = opts.text?.trim() ?? "";
   if (!text) {
     return { ok: false } as const;
   }
