@@ -184,7 +184,7 @@ function coerceDelivery(delivery: UnknownRecord) {
     }
   }
   if (typeof delivery.to === "string") {
-    const trimmed = delivery.to.trim();
+    const trimmed = (delivery?.to ?? "").trim();
     if (trimmed) {
       next.to = trimmed;
     } else {
