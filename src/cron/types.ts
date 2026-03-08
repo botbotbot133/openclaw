@@ -15,7 +15,7 @@ export type CronSchedule =
 export type CronSessionTarget = "main" | "isolated";
 export type CronWakeMode = "next-heartbeat" | "now";
 
-export type CronMessageChannel = ChannelId | "last";
+export type CronMessageChannel = ChannelId | "last" | "agent";
 
 export type CronDeliveryMode = "none" | "announce" | "webhook";
 

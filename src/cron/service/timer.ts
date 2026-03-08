@@ -1069,6 +1069,38 @@ export async function executeJobCore(
   // See: https://github.com/openclaw/openclaw/issues/32013
   const summaryText = res.summary?.trim();
   const deliveryPlan = resolveCronDeliveryPlan(job);
+
+  
+  // Handle agent channel routing - deliver directly to target agent's session
+  if (deliveryPlan.channel === "agent" && deliveryPlan.to) {
+    if (summaryText) {
+      const label = res.status === "error" ? `Cron (error): ${summaryText}` : `Cron: ${summaryText}`;
+      state.deps.enqueueSystemEvent(label, {
+        agentId: deliveryPlan.to, // Target agent
+        sessionKey: `cron:${job.id}:agent-delivery`,
+        contextKey: `cron:${job.id}`,
+      });
+      if (job.wakeMode === "now") {
+        state.deps.requestHeartbeatNow({
+          reason: `cron:${job.id}:agent-delivery`,
+          agentId: deliveryPlan.to,
+          sessionKey: `cron:${job.id}:agent-delivery`,
+        });
+      }
+    }
+    return {
+      status: res.status,
+      error: res.error,
+      summary: res.summary,
+      delivered: true,
+      deliveryAttempted: true,
+      sessionId: res.sessionId,
+      sessionKey: res.sessionKey,
+      model: res.model,
+      provider: res.provider,
+      usage: res.usage,
+    };
+  }
   const suppressMainSummary =
     res.status === "error" && res.errorKind === "delivery-target" && deliveryPlan.requested;
   if (
