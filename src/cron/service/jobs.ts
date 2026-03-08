@@ -176,6 +176,17 @@ function validateTelegramDeliveryTarget(to: string | undefined): string | undefi
   return undefined;
 }
 
+function validateAgentDeliveryTarget(to: string | undefined): string | undefined {
+  if (!to) {
+    return "Agent channel delivery requires delivery.to to specify the target agent ID or workspace path";
+  }
+  const trimmed = to.trim();
+  if (trimmed.length === 0) {
+    return "Agent channel delivery requires delivery.to to specify the target agent ID or workspace path";
+  }
+  return undefined;
+}
+
 function assertDeliverySupport(job: Pick<CronJob, "sessionTarget" | "delivery">) {
   // No delivery object or mode is "none" -- nothing to validate.
   if (!job.delivery || job.delivery.mode === "none") {
@@ -191,6 +202,13 @@ function assertDeliverySupport(job: Pick<CronJob, "sessionTarget" | "delivery">)
   }
   if (job.sessionTarget !== "isolated") {
     throw new Error('cron channel delivery config is only supported for sessionTarget="isolated"');
+  }
+
+  if (job.delivery.channel === "agent") {
+    const agentError = validateAgentDeliveryTarget(job.delivery.to);
+    if (agentError) {
+      throw new Error(agentError);
+    }
   }
   if (job.delivery.channel === "telegram") {
     const telegramError = validateTelegramDeliveryTarget(job.delivery.to);
