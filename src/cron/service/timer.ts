@@ -556,6 +556,7 @@ function armRunningRecheckTimer(state: CronServiceState) {
 }
 
 export async function onTimer(state: CronServiceState) {
+  console.log("[DEBUG] onTimer START");
   if (state.running) {
     // Re-arm the timer so the scheduler keeps ticking even when a job is
     // still executing.  Without this, a long-running job (e.g. an agentTurn
@@ -911,6 +912,7 @@ export async function runMissedJobs(
   });
 }
 
+console.log("[DEBUG] runDueJobs START");
 export async function runDueJobs(state: CronServiceState) {
   if (!state.store) {
     return;
