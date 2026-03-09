@@ -39,6 +39,7 @@ export async function deliverToAgentChannel(
   targetAgentId: string,
   message: string,
 ): Promise<AgentChannelDeliveryResult> {
+  console.log("[DEBUG] deliverToAgentChannel called", { jobId: job.id, targetAgentId });
   const normalizedTargetId = normalizeAgentId(targetAgentId);
   const sourceAgentId = normalizeAgentId(job.agentId);
 
