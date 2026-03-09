@@ -1,3 +1,4 @@
+import { loadConfig } from "../../config/config.js";
 import type { CronConfig, CronRetryOn } from "../../config/types.cron.js";
 import { isCronSystemEvent } from "../../infra/heartbeat-events-filter.js";
 import type { HeartbeatRunResult } from "../../infra/heartbeat-wake.js";
@@ -13,6 +14,7 @@ import type {
   CronRunStatus,
   CronRunTelemetry,
 } from "../types.js";
+import { deliverToAgentChannel } from "./agent-channel-delivery.js";
 import {
   computeJobPreviousRunAtMs,
   computeJobNextRunAtMs,
@@ -1075,17 +1077,42 @@ export async function executeJobCore(
     if (summaryText) {
       const label =
         res.status === "error" ? `Cron (error): ${summaryText}` : `Cron: ${summaryText}`;
-      state.deps.enqueueSystemEvent(label, {
-        agentId: deliveryPlan.to, // Target agent
-        sessionKey: `cron:${job.id}:agent-delivery`,
-        contextKey: `cron:${job.id}`,
-      });
-      if (job.wakeMode === "now") {
-        state.deps.requestHeartbeatNow({
-          reason: `cron:${job.id}:agent-delivery`,
-          agentId: deliveryPlan.to,
-          sessionKey: `cron:${job.id}:agent-delivery`,
-        });
+
+      // Use proper agent channel delivery instead of broken enqueueSystemEvent
+      const deliveryResult = await deliverToAgentChannel(
+        loadConfig(),
+        state.deps,
+        job,
+        deliveryPlan.to,
+        label,
+      );
+
+      if (deliveryResult.ok) {
+        return {
+          status: res.status,
+          error: res.error,
+          summary: res.summary,
+          delivered: true,
+          deliveryAttempted: true,
+          sessionId: deliveryResult.sessionKey,
+          sessionKey: res.sessionKey,
+          model: res.model,
+          provider: res.provider,
+          usage: res.usage,
+        };
+      } else {
+        return {
+          status: "error",
+          error: deliveryResult.error,
+          summary: res.summary,
+          delivered: false,
+          deliveryAttempted: true,
+          sessionId: res.sessionId,
+          sessionKey: res.sessionKey,
+          model: res.model,
+          provider: res.provider,
+          usage: res.usage,
+        };
       }
     }
     return {
@@ -1101,7 +1128,6 @@ export async function executeJobCore(
       usage: res.usage,
     };
   }
-
   const suppressMainSummary =
     res.status === "error" && res.errorKind === "delivery-target" && deliveryPlan.requested;
   if (
