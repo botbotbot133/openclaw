@@ -910,9 +910,21 @@ export function isJobDue(job: CronJob, nowMs: number, opts: { forced: boolean })
 }
 
 export function resolveJobPayloadTextForMain(job: CronJob): string | undefined {
+  console.log("[DEBUG] resolveJobPayloadTextForMain ENTER - payload.kind:", job.payload?.kind);
   if (job.payload.kind !== "systemEvent") {
+    console.log("[DEBUG] resolveJobPayloadTextForMain - not systemEvent, returning undefined");
     return undefined;
   }
+  console.log("[DEBUG] resolveJobPayloadTextForMain - calling normalizePayloadToSystemText");
   const text = normalizePayloadToSystemText(job.payload);
-  return text.trim() ? text : undefined;
+  console.log(
+    "[DEBUG] resolveJobPayloadTextForMain - normalizePayloadToSystemText returned:",
+    text === undefined ? "undefined" : "text (" + text.length + " chars)",
+  );
+  const result = text.trim() ? text : undefined;
+  console.log(
+    "[DEBUG] resolveJobPayloadTextForMain EXIT - returning:",
+    result === undefined ? "undefined" : "text",
+  );
+  return result;
 }

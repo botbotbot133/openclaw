@@ -556,7 +556,7 @@ function armRunningRecheckTimer(state: CronServiceState) {
 }
 
 export async function onTimer(state: CronServiceState) {
-  console.log("[DEBUG] onTimer START");
+  console.log("[DEBUG] onTimer START - running:", state.running);
   if (state.running) {
     // Re-arm the timer so the scheduler keeps ticking even when a job is
     // still executing.  Without this, a long-running job (e.g. an agentTurn
@@ -912,16 +912,22 @@ export async function runMissedJobs(
   });
 }
 
-console.log("[DEBUG] runDueJobs START");
 export async function runDueJobs(state: CronServiceState) {
+  console.log("[DEBUG] runDueJobs ENTER - store exists:", !!state.store);
   if (!state.store) {
+    console.log("[DEBUG] runDueJobs - no store, returning early");
     return;
   }
   const now = state.deps.nowMs();
+  console.log("[DEBUG] runDueJobs - now:", now);
   const due = collectRunnableJobs(state, now);
+  console.log("[DEBUG] runDueJobs - due jobs count:", due.length);
   for (const job of due) {
+    console.log("[DEBUG] runDueJobs - executing job:", job.id, job.name);
     await executeJob(state, job, now, { forced: false });
+    console.log("[DEBUG] runDueJobs - finished job:", job.id);
   }
+  console.log("[DEBUG] runDueJobs EXIT");
 }
 
 export async function executeJobCore(
@@ -931,6 +937,13 @@ export async function executeJobCore(
 ): Promise<
   CronRunOutcome & CronRunTelemetry & { delivered?: boolean; deliveryAttempted?: boolean }
 > {
+  console.log("[DEBUG] executeJobCore ENTER - job.id:", job.id, "job.name:", job.name);
+  console.log(
+    "[DEBUG] executeJobCore - sessionTarget:",
+    job.sessionTarget,
+    "payload.kind:",
+    job.payload?.kind,
+  );
   const resolveAbortError = () => ({
     status: "error" as const,
     error: timeoutErrorMessage(),
@@ -961,7 +974,14 @@ export async function executeJobCore(
     return resolveAbortError();
   }
   if (job.sessionTarget === "main") {
+    console.log(
+      "[DEBUG] executeJobCore - sessionTarget is 'main', calling resolveJobPayloadTextForMain",
+    );
     const text = resolveJobPayloadTextForMain(job);
+    console.log(
+      "[DEBUG] executeJobCore - resolveJobPayloadTextForMain returned:",
+      text ? "text (" + text.length + " chars)" : "undefined/null",
+    );
     if (!text) {
       const kind = job.payload.kind;
       return {

@@ -3,6 +3,7 @@ import { truncateUtf16Safe } from "../../utils.js";
 import type { CronPayload } from "../types.js";
 
 export function normalizeRequiredName(raw: unknown) {
+  console.log("[DEBUG] normalizeRequiredName called");
   if (typeof raw !== "string") {
     throw new Error("cron job name is required");
   }
@@ -14,6 +15,7 @@ export function normalizeRequiredName(raw: unknown) {
 }
 
 export function normalizeOptionalText(raw: unknown) {
+  console.log("[DEBUG] normalizeOptionalText called");
   if (typeof raw !== "string") {
     return undefined;
   }
@@ -29,6 +31,7 @@ function truncateText(input: string, maxLen: number) {
 }
 
 export function normalizeOptionalAgentId(raw: unknown) {
+  console.log("[DEBUG] normalizeOptionalAgentId called");
   if (typeof raw !== "string") {
     return undefined;
   }
@@ -40,6 +43,7 @@ export function normalizeOptionalAgentId(raw: unknown) {
 }
 
 export function normalizeOptionalSessionKey(raw: unknown) {
+  console.log("[DEBUG] normalizeOptionalSessionKey called");
   if (typeof raw !== "string") {
     return undefined;
   }
@@ -51,6 +55,7 @@ export function inferLegacyName(job: {
   schedule?: { kind?: unknown; everyMs?: unknown; expr?: unknown };
   payload?: { kind?: unknown; text?: unknown; message?: unknown };
 }) {
+  console.log("[DEBUG] inferLegacyName called");
   const text =
     job?.payload?.kind === "systemEvent" && typeof job.payload.text === "string"
       ? job.payload.text
@@ -80,8 +85,25 @@ export function inferLegacyName(job: {
 }
 
 export function normalizePayloadToSystemText(payload: CronPayload) {
+  console.log("[DEBUG] normalizePayloadToSystemText START");
+  console.log("[DEBUG] payload.kind =", payload?.kind);
+  console.log("[DEBUG] payload =", JSON.stringify(payload, null, 2));
+
   if (payload.kind === "systemEvent") {
+    console.log("[DEBUG] payload.text =", payload.text);
+    console.log("[DEBUG] typeof payload.text =", typeof payload.text);
+
+    if (typeof payload.text !== "string") {
+      console.error("[DEBUG] ERROR: payload.text is not a string!");
+      console.error("[DEBUG] payload.text =", payload.text);
+      throw new Error(
+        `cron: systemEvent payload.text must be a string, got ${typeof payload.text}`,
+      );
+    }
+
     return payload.text.trim();
   }
-  return payload.message.trim();
+
+  console.log("[DEBUG] payload.message =", (payload as { message?: string }).message);
+  return (payload as { message?: string }).message?.trim();
 }
